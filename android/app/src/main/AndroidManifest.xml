@@ -13,7 +13,7 @@
     <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
 
     <application
-        android:label="待办清单"
+        android:label="日历待办"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:enableOnBackInvokedCallback="true">

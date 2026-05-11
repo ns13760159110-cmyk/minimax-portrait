@@ -5,6 +5,7 @@ import '../../providers/category_provider.dart';
 import '../../models/task.dart';
 import '../../core/constants/app_colors.dart';
 import '../../widgets/task_item_widget.dart';
+import '../home/home_screen.dart' show slideRoute;
 import 'task_form_screen.dart';
 
 /// 任务列表页：支持多维度筛选（分类、优先级、完成状态）
@@ -17,7 +18,6 @@ class TaskListScreen extends StatelessWidget {
     final catProvider   = context.watch<CategoryProvider>();
     final filter        = taskProvider.filter;
     final tasks         = taskProvider.filteredTasks;
-    final theme         = Theme.of(context);
     final hasFilter     = filter.categoryId != null ||
                           filter.priority   != null ||
                           filter.isCompleted != null;
@@ -74,9 +74,8 @@ class TaskListScreen extends StatelessWidget {
                       final task = tasks[i];
                       return TaskItemWidget(
                         task: task,
-                        onTap: () => Navigator.push(ctx, MaterialPageRoute(
-                          builder: (_) => TaskFormScreen(task: task),
-                        )),
+                        onTap: () => Navigator.push(
+                            ctx, slideRoute(TaskFormScreen(task: task))),
                         onToggle: () => taskProvider.toggleComplete(task),
                         onDelete: () => taskProvider.deleteTask(task.id),
                       );
@@ -85,11 +84,12 @@ class TaskListScreen extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(context, MaterialPageRoute(
-          builder: (_) => const TaskFormScreen(),
-        )),
-        child: const Icon(Icons.add_rounded),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Navigator.push(
+            context, slideRoute(const TaskFormScreen())),
+        icon: const Icon(Icons.add_rounded, size: 20),
+        label: const Text('新建任务',
+            style: TextStyle(fontWeight: FontWeight.w600)),
       ),
     );
   }
