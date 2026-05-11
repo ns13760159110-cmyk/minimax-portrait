@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#0f0a1a"/>
+<title>MiniMax 写真</title>
+<style>
+:root {
+  --bg: #0f0a1a;
+  --panel: rgba(255,255,255,0.07);
+  --panel-hover: rgba(255,255,255,0.12);
+  --line: rgba(255,255,255,0.1);
+  --text: #f0eef4;
+  --muted: rgba(240,238,244,0.6);
+  --primary: #8b5cf6;
+  --primary-2: #a78bfa;
+  --accent: #f59e0b;
+  --success: #34d399;
+  --danger: #fb7185;
+  --radius: 12px;
+  --radius-sm: 8px;
+  font-family: -apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Segoe UI",sans-serif;
+}
+* { box-sizing:border-box; }
+html,body { min-height:100dvh; margin:0; }
+body {
+  margin:0; padding:16px;
+  background: radial-gradient(ellipse at 20% 20%,rgba(139,92,246,0.25),transparent 40rem),
+              radial-gradient(ellipse at 90% 80%,rgba(52,211,153,0.12),transparent 30rem),
+              linear-gradient(145deg,#0f0a1a 0%,#1a1228 50%,#16101a 100%);
+  color:var(--text); min-height:100dvh;
+}
+.app { max-width:480px; margin:0 auto; padding-top:12px; }
+
+/* header */
+.header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+.header h1 { font-size:20px; font-weight:600; margin:0; background:linear-gradient(135deg,var(--primary),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.header .badge { font-size:11px; background:var(--panel); padding:4px 10px; border-radius:20px; color:var(--muted); }
+
+/* cards */
+.card { background:var(--panel); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid var(--line); border-radius:var(--radius); padding:16px; margin-bottom:16px; transition:all .2s; }
+.card-title { font-size:14px; font-weight:600; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+.card-title .icon { font-size:18px; }
+
+/* workflow selector */
+.wf-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+.wf-card { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px; text-align:center; cursor:pointer; transition:all .2s; }
+.wf-card:active { transform:scale(0.97); }
+.wf-card.active { border-color:var(--primary); background:rgba(139,92,246,0.15); }
+.wf-card .icon { font-size:28px; margin-bottom:6px; display:block; }
+.wf-card .name { font-size:13px; font-weight:500; }
+.wf-card .desc { font-size:11px; color:var(--muted); margin-top:4px; }
+
+/* form fields */
+label { display:block; font-size:13px; font-weight:500; margin-bottom:6px; color:var(--muted); }
+textarea,.field-input { width:100%; background:rgba(0,0,0,0.3); border:1px solid var(--line); border-radius:var(--radius-sm); color:var(--text); padding:9px 12px; font-size:14px; font-family:inherit; resize:vertical; outline:none; transition:border .2s; }
+textarea:focus,.field-input:focus { border-color:var(--primary); }
+textarea { min-height:60px; }
+
+/* upload */
+.upload { position:relative; background:rgba(0,0,0,0.2); border:1px dashed var(--line); border-radius:var(--radius-sm); padding:20px; text-align:center; cursor:pointer; margin-bottom:12px; transition:all .2s; }
+.upload:hover { border-color:var(--primary); background:rgba(139,92,246,0.08); }
+.upload input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+.upload .label { font-size:13px; color:var(--muted); }
+.upload .preview { max-height:180px; border-radius:var(--radius-sm); margin-top:8px; max-width:100%; }
+.upload.has-preview .label { display:none; }
+
+/* buttons */
+.btn { display:block; width:100%; padding:12px 20px; border:none; border-radius:var(--radius-sm); font-size:15px; font-weight:600; cursor:pointer; transition:all .2s; }
+.btn:active { transform:scale(0.97); }
+.btn.primary { background:linear-gradient(135deg,var(--primary),#6d28d9); color:#fff; }
+.btn.primary:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+.btn.secondary { background:var(--panel); color:var(--text); border:1px solid var(--line); }
+
+/* result */
+.result { margin-top:16px; display:none; }
+.result.show { display:block; }
+.result img { width:100%; border-radius:var(--radius); margin-bottom:8px; }
+.result .actions { display:flex; gap:8px; }
+.result .actions .btn { flex:1; }
+
+/* toast */
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); backdrop-filter:blur(12px); border:1px solid var(--line); border-radius:var(--radius-sm); padding:10px 16px; font-size:13px; z-index:100; display:none; max-width:90%; text-align:center; }
+.toast.show { display:block; }
+.toast.error { border-color:var(--danger); color:var(--danger); }
+
+/* spinner */
+.spinner { display:none; text-align:center; padding:20px; }
+.spinner.show { display:block; }
+.spinner .dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--primary); margin:0 4px; animation:bounce .6s infinite alternate; }
+.spinner .dot:nth-child(2) { animation-delay:.2s; }
+.spinner .dot:nth-child(3) { animation-delay:.4s; }
+@keyframes bounce { from { transform:translateY(0); opacity:.3; } to { transform:translateY(-8px); opacity:1; } }
+
+/* field groups */
+.field-group { margin-bottom:12px; }
+
+/* api key */
+.api-key-row { display:flex; gap:8px; margin-bottom:14px; }
+.api-key-row .field-input { flex:1; }
+
+/* settings toggle */
+.settings-toggle { text-align:right; margin-bottom:8px; }
+.settings-toggle button { background:none; border:none; color:var(--muted); font-size:12px; cursor:pointer; padding:4px 8px; border-radius:4px; }
+.settings-toggle button:hover { background:var(--panel); }
+.settings-panel { display:none; margin-bottom:12px; }
+.settings-panel.show { display:block; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>✨ AI 写真</h1>
+    <span class="badge">MiniMax 包月</span>
+  </div>
+
+  <div class="settings-toggle">
+    <button id="settingsBtn">⚙️ 设置</button>
+  </div>
+  <div class="card settings-panel" id="settingsPanel">
+    <div class="field-group">
+      <label>API Key</label>
+      <div class="api-key-row">
+        <input class="field-input" id="apiKey" type="password" placeholder="输入 API Key" value="sk-cp-gdeuU9CRiyv27EIVetuqRXCD3uaLOVIu2TvWKzwLIzdclkJd3-j9AW0LlG5DQAQQkOR3NMxC98hmpU28pOEIaY_J0rOtWw3vU5eawJBKjwewosm_eygPj38"/>
+      </div>
+    </div>
+  </div>
+
+  <div class="wf-grid" id="wfGrid">
+    <div class="wf-card active" data-wf="t2i">
+      <span class="icon">🖼️</span>
+      <div class="name">文生写真</div>
+      <div class="desc">输入文字生成写真</div>
+    </div>
+    <div class="wf-card" data-wf="i2i">
+      <span class="icon">🎨</span>
+      <div class="name">图生写真</div>
+      <div class="desc">上传图片改变风格</div>
+    </div>
+  </div>
+
+  <div class="card" id="formCard">
+    <div id="t2iForm">
+      <div class="card-title"><span class="icon">🖼️</span> 文生写真</div>
+      <div class="field-group">
+        <label>正向提示词</label>
+        <textarea id="t2iPrompt" placeholder="描述你想要的写真效果，例如：精美的写真照片，一位年轻女性，柔和的自然光，浅色背景，专业摄影，半身照，高清细节">精美的写真照片，一位年轻亚洲女性，柔和的自然光，浅色背景，专业摄影，半身照，高清细节</textarea>
+      </div>
+      <div class="field-group">
+        <label>比例</label>
+        <select class="field-input" id="t2iRatio">
+          <option value="1:1">1:1 方形</option>
+          <option value="3:4" selected>3:4 竖版（适合手机壁纸）</option>
+          <option value="4:3">4:3 横版</option>
+          <option value="9:16">9:16 手机全屏</option>
+          <option value="16:9">16:9 宽屏</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="i2iForm" style="display:none">
+      <div class="card-title"><span class="icon">🎨</span> 图生写真（风格迁移）</div>
+      <div class="upload" id="i2iUpload">
+        <input type="file" accept="image/*" id="i2iFile"/>
+        <div class="label">📷 点击上传参考图</div>
+        <img class="preview" id="i2iPreview"/>
+      </div>
+      <div class="field-group">
+        <label>风格描述</label>
+        <textarea id="i2iPrompt" placeholder="描述想要转换的风格，例如：日系清新风格，柔和的色调，电影质感">转换为日系清新风格，柔和的色调，电影感光影</textarea>
+      </div>
+      <div class="field-group">
+        <label>强度</label>
+        <input class="field-input" type="range" id="i2iStrength" min="0" max="1" step="0.05" value="0.8"/>
+        <span id="i2iStrengthVal" style="font-size:12px;color:var(--muted)">0.80</span>
+      </div>
+    </div>
+
+    <button class="btn primary" id="generateBtn">✨ 开始生成</button>
+    <div class="spinner" id="spinner">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px">生成中，约15-30秒...</div>
+    </div>
+  </div>
+
+  <div class="card result" id="result">
+    <img id="resultImg" alt="生成结果"/>
+    <div class="actions">
+      <button class="btn primary" id="downloadBtn">⬇️ 下载</button>
+      <button class="btn secondary" id="retryBtn">🔄 重新生成</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API_URL = 'https://api.minimaxi.com/v1/image_generation';
+
+// DOM refs
+const wfGrid = document.getElementById('wfGrid');
+const t2iForm = document.getElementById('t2iForm');
+const i2iForm = document.getElementById('i2iForm');
+const t2iPrompt = document.getElementById('t2iPrompt');
+const t2iRatio = document.getElementById('t2iRatio');
+const i2iPrompt = document.getElementById('i2iPrompt');
+const i2iStrength = document.getElementById('i2iStrength');
+const i2iStrengthVal = document.getElementById('i2iStrengthVal');
+const i2iFile = document.getElementById('i2iFile');
+const i2iPreview = document.getElementById('i2iPreview');
+const i2iUpload = document.getElementById('i2iUpload');
+const generateBtn = document.getElementById('generateBtn');
+const spinner = document.getElementById('spinner');
+const result = document.getElementById('result');
+const resultImg = document.getElementById('resultImg');
+const downloadBtn = document.getElementById('downloadBtn');
+const retryBtn = document.getElementById('retryBtn');
+const toast = document.getElementById('toast');
+const apiKeyInput = document.getElementById('apiKey');
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsPanel = document.getElementById('settingsPanel');
+
+let currentWf = 't2i';
+let uploadedBase64 = null;
+let lastResultBase64 = null;
+
+// Workflow selection
+wfGrid.addEventListener('click', e => {
+  const card = e.target.closest('.wf-card');
+  if (!card) return;
+  wfGrid.querySelectorAll('.wf-card').forEach(c => c.classList.remove('active'));
+  card.classList.add('active');
+  currentWf = card.dataset.wf;
+  t2iForm.style.display = currentWf === 't2i' ? 'block' : 'none';
+  i2iForm.style.display = currentWf === 'i2i' ? 'block' : 'none';
+  result.classList.remove('show');
+});
+
+// Strength slider
+i2iStrength.addEventListener('input', () => {
+  i2iStrengthVal.textContent = parseFloat(i2iStrength.value).toFixed(2);
+});
+
+// Image upload
+i2iFile.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    uploadedBase64 = ev.target.result.split(',')[1];
+    i2iPreview.src = ev.target.result;
+    i2iUpload.classList.add('has-preview');
+  };
+  reader.readAsDataURL(file);
+});
+
+// Settings toggle
+settingsBtn.addEventListener('click', () => {
+  settingsPanel.classList.toggle('show');
+});
+
+// Show toast
+function showToast(msg, isError = false) {
+  toast.textContent = msg;
+  toast.className = 'toast show' + (isError ? ' error' : '');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// Generate
+async function generate() {
+  generateBtn.disabled = true;
+  generateBtn.textContent = '⏳ 生成中...';
+  spinner.classList.add('show');
+  result.classList.remove('show');
+
+  const apiKey = apiKeyInput.value.trim();
+  if (!apiKey) {
+    showToast('请先输入 API Key', true);
+    generateBtn.disabled = false;
+    generateBtn.textContent = '✨ 开始生成';
+    spinner.classList.remove('show');
+    return;
+  }
+
+  try {
+    let payload;
+
+    if (currentWf === 't2i') {
+      payload = {
+        model: 'image-01',
+        prompt: t2iPrompt.value.trim() || '精美的写真照片',
+        aspect_ratio: t2iRatio.value,
+        n: 1,
+        response_format: 'base64',
+        prompt_optimizer: true
+      };
+    } else {
+      if (!uploadedBase64) {
+        showToast('请先上传参考图片', true);
+        generateBtn.disabled = false;
+        generateBtn.textContent = '✨ 开始生成';
+        spinner.classList.remove('show');
+        return;
+      }
+      payload = {
+        model: 'image-01',
+        prompt: i2iPrompt.value.trim() || '转换风格',
+        subject_reference: [{ type: 'character', image_file: 'data:image/jpeg;base64,' + uploadedBase64 }],
+        response_format: 'base64',
+      };
+    }
+
+    const resp = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!resp.ok) {
+      const err = await resp.text();
+      throw new Error(`API错误 ${resp.status}: ${err.slice(0, 100)}`);
+    }
+
+    const data = await resp.json();
+    const b64List = data?.data?.image_base64;
+    const urlList = data?.data?.image_urls;
+
+    if (b64List && b64List.length) {
+      lastResultBase64 = b64List[0];
+      resultImg.src = 'data:image/jpeg;base64,' + lastResultBase64;
+    } else if (urlList && urlList.length) {
+      lastResultBase64 = null;
+      resultImg.src = urlList[0];
+    } else {
+      throw new Error('API 返回没有图片数据');
+    }
+    result.classList.add('show');
+    showToast('✅ 生成成功！');
+
+  } catch (err) {
+    showToast('❌ ' + err.message, true);
+  } finally {
+    generateBtn.disabled = false;
+    generateBtn.textContent = '✨ 开始生成';
+    spinner.classList.remove('show');
+  }
+}
+
+generateBtn.addEventListener('click', generate);
+
+// Download
+downloadBtn.addEventListener('click', () => {
+  if (lastResultBase64) {
+    const a = document.createElement('a');
+    a.href = 'data:image/jpeg;base64,' + lastResultBase64;
+    a.download = 'minimax-portrait-' + Date.now() + '.jpg';
+    a.click();
+  }
+});
+
+// Retry
+retryBtn.addEventListener('click', generate);
+</script>
+</body>
+</html>
