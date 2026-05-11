@@ -1,0 +1,52 @@
+name: todo_app
+description: 功能完整的Flutter待办事项App，支持日历视图、分类标签、优先级和通知提醒。
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # 状态管理
+  provider: ^6.1.2
+
+  # SQLite本地数据库
+  sqflite: ^2.3.3+1
+  path: ^1.9.0
+
+  # 本地通知（支持后台精确闹钟）
+  flutter_local_notifications: ^17.2.4
+
+  # 时区处理（通知调度必须）
+  timezone: ^0.9.4
+  flutter_timezone: ^1.0.4
+
+  # 月历组件
+  table_calendar: ^3.1.2
+
+  # 日期格式化
+  intl: ^0.19.0
+
+  # 主题/偏好持久化
+  shared_preferences: ^2.3.3
+
+  # 列表左滑操作
+  flutter_slidable: ^3.1.1
+
+  # UUID 生成
+  uuid: ^4.5.1
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
