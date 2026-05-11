@@ -1,0 +1,58 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace "com.example.todo_app"
+
+    // 固定 SDK 版本，避免依赖 flutter.* 变量在初次配置时未定义
+    compileSdk 34
+
+    ndkVersion "25.1.8937393"
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+        // 启用核心库去糖（sqflite 等需要 Java 8+ API 时的兼容层）
+        coreLibraryDesugaringEnabled true
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
+    defaultConfig {
+        applicationId "com.example.todo_app"
+        minSdk 23           // 最低支持 Android 6.0（flutter_local_notifications 要求）
+        targetSdk 34        // 目标 Android 14
+        versionCode flutter.versionCode
+        versionName flutter.versionName
+        multiDexEnabled true
+    }
+
+    buildTypes {
+        debug {
+            // 调试包使用 debug 签名，可直接安装测试
+            signingConfig signingConfigs.debug
+        }
+        release {
+            // ⚠️ 正式发布时请在 key.properties 配置签名（见 README 教程）
+            signingConfig signingConfigs.debug  // 暂用 debug 签名，发布前请替换
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"),
+                          "proguard-rules.pro"
+        }
+    }
+}
+
+dependencies {
+    // Java 8 API 去糖支持库（coreLibraryDesugaringEnabled = true 时必须）
+    coreLibraryDesugaring "com.android.tools.desugar_jdk_libs:2.0.4"
+}
+
+flutter {
+    source "../.."
+}

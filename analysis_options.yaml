@@ -1,0 +1,16 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+
+linter:
+  rules:
+    # 允许在 Widget build 中使用非 const 构造（避免大量误报）
+    prefer_const_constructors: false
+    prefer_const_literals_to_create_immutables: false
+    # 允许多行字符串
+    prefer_single_quotes: false
+    # 关闭冗长的类型注解要求
+    always_specify_types: false
