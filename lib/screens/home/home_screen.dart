@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../providers/task_provider.dart';
-import '../../providers/category_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/app_date_utils.dart';
 import '../../models/task.dart';
